@@ -1,0 +1,5 @@
+app.egg-info/
+flask/
+webservice_iot.egg-info/
+webservice_iot/__pycache__/
+*.pyc

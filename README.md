@@ -19,3 +19,14 @@
 
 	```. flask/bin/activate```
 
+4. Setup environment variables
+
+	```export FLASK_APP=webservice_iot``
+
+5. (Fresh Start) Re-initialize database
+
+    ```flask initdb```
+
+6. Run application
+
+    ```flask run```
