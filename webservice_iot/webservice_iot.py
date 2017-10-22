@@ -50,7 +50,7 @@ def sign_up():
     name = request.form['name']
     username = request.form['username']
     password = request.form['password']
-    cur = db.execute("INSERT INTO users (name, username, pass, access) VALUES (?, ?, ?, ?)",
+    cursor = db.execute("INSERT INTO users (name, username, password, access) VALUES (?, ?, ?, ?)",
         (name, username, password, "1"))
     db.commit()
     return "Ok", STATUS_CREATED
@@ -61,7 +61,7 @@ def login():
     username = request.form['username']
     password = request.form['password']
     cursor = db.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
-    # TODO: get user from database
+    # TODO: verify if this is the best way to do it
     if (cursor.fetchone() > 0):
         session['logged_in'] = True
         return Response("", STATUS_OK)
@@ -73,3 +73,30 @@ def logout():
     session.pop('logged_in', None)
     flash('You were logged out')
     return "OK"
+
+@app.route('/devices')
+def list_devices():
+    db = get_db()
+    cursor = db.execute('SELECT * FROM devices')
+    # Descobrir com pega todos os resultados do banco
+    return cursor.fetchAll()
+
+@app.route('/devices/{id}', methods=['POST'])
+def action_device():
+    db = get_db()
+    device_id = request.form['id']
+    action = request.form['action']
+    cursor = db.execute('SELECT type FROM devices WHERE id=?', device_id)
+    # TODO: verify if this is the best way to do it
+    # if (cursor.fetchone() > 0):
+        # pegar o tipo
+        # type = 'LIGHT_BULB'
+        # if type = 'LIGHT_BULB'
+            # chama a funcao do nardoni gordo com a action
+            # fazer_alguma_merda(action)
+        # else
+            # chama a funcao do japones fdp
+    # retorna se deu certo ou nao e um payload que vcs decidem
+    return "", STATUS_OK
+
+
