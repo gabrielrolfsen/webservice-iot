@@ -1,6 +1,7 @@
 import os
 import sqlite3
 from .servo import Servo
+from .light_bulb import Light_bulb
 from flask import Flask, request, session, g, redirect, url_for, abort, flash, Response
 
 app = Flask(__name__)
@@ -94,7 +95,6 @@ def action_device():
     fetched = cursor.fetchone()
     if (fetched):
         # pegar o tipo
-        # type = 'LIGHT_BULB'
         # if type = 'LIGHT_BULB'
             # chama a funcao do nardoni gordo com a action
             # fazer_alguma_merda(action)
