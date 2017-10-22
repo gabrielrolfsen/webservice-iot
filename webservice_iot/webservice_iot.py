@@ -1,6 +1,7 @@
 import os
 import sqlite3
 from .servo import Servo
+from .light_bulb import Light_bulb
 from flask import Flask, request, session, g, redirect, url_for, abort, flash, Response
 
 app = Flask(__name__)
