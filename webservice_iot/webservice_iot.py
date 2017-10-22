@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import servo
 from flask import Flask, request, session, g, redirect, url_for, abort, flash, Response
 
 app = Flask(__name__)
@@ -16,6 +17,8 @@ app.config.from_envvar('WEBSERVER_SETTINGS', silent=True)
 STATUS_OK = 200
 STATUS_CREATED = 201
 STATUS_FORBIDDEN = 401
+
+motor = servo.Servo()
 
 def connect_db():
     """Connects to the specific database."""
@@ -88,14 +91,19 @@ def action_device():
     action = request.form['action']
     cursor = db.execute('SELECT type FROM devices WHERE id=?', device_id)
     # TODO: verify if this is the best way to do it
-    # if (cursor.fetchone() > 0):
+    fetched = cursor.fetchone()
+    if (fetched):
         # pegar o tipo
         # type = 'LIGHT_BULB'
         # if type = 'LIGHT_BULB'
             # chama a funcao do nardoni gordo com a action
             # fazer_alguma_merda(action)
-        # else
-            # chama a funcao do japones fdp
+        # if (fetched['type'] = ''):
+        if (action = 'OPEN'):
+            motor.open()
+        else:
+            motor.close()
+
     # retorna se deu certo ou nao e um payload que vcs decidem
     return "", STATUS_OK
 
