@@ -93,16 +93,13 @@ def action_device():
     # TODO: verify if this is the best way to do it
     fetched = cursor.fetchone()
     if (fetched):
-        # pegar o tipo
-        # type = 'LIGHT_BULB'
-        # if type = 'LIGHT_BULB'
-            # chama a funcao do nardoni gordo com a action
-            # fazer_alguma_merda(action)
-        # if (fetched['type'] = ''):
-        if action == 'OPEN':
-            motor.open()
-        else:
-            motor.close()
+        type = fetched['type']
+        if type == 1: # tipo 1: fechadura
+            if action == 'OPEN':
+                motor.open()
+            else:
+                motor.close()
+        # elif type == 2:
 
     # retorna se deu certo ou nao e um payload que vcs decidem
     return "", STATUS_OK
