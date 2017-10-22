@@ -1,6 +1,6 @@
 import os
 import sqlite3
-import servo
+from .servo import Servo
 from flask import Flask, request, session, g, redirect, url_for, abort, flash, Response
 
 app = Flask(__name__)
@@ -18,7 +18,7 @@ STATUS_OK = 200
 STATUS_CREATED = 201
 STATUS_FORBIDDEN = 401
 
-motor = servo.Servo()
+motor = Servo()
 
 def connect_db():
     """Connects to the specific database."""
@@ -77,14 +77,14 @@ def logout():
     flash('You were logged out')
     return "OK"
 
-@app.route('/devices')
-def list_devices():
-    db = get_db()
-    cursor = db.execute('SELECT * FROM devices')
-    # Descobrir com pega todos os resultados do banco
-    return cursor.fetchAll()
+#@app.route('/devices')
+#def list_devices():
+#    db = get_db()
+#    cursor = db.execute('SELECT * FROM devices')
+#    # Descobrir com pega todos os resultados do banco
+#    return cursor.fetchAll()
 
-@app.route('/devices/{id}', methods=['POST'])
+@app.route('/devices', methods=['POST'])
 def action_device():
     db = get_db()
     device_id = request.form['id']
@@ -99,7 +99,7 @@ def action_device():
             # chama a funcao do nardoni gordo com a action
             # fazer_alguma_merda(action)
         # if (fetched['type'] = ''):
-        if (action = 'OPEN'):
+        if action == 'OPEN':
             motor.open()
         else:
             motor.close()
