@@ -20,6 +20,7 @@ STATUS_CREATED = 201
 STATUS_FORBIDDEN = 401
 
 motor = Servo()
+bulb = Light_bulb()
 
 def connect_db():
     """Connects to the specific database."""
@@ -100,7 +101,11 @@ def action_device():
                 motor.open()
             else:
                 motor.close()
-        # elif type == 2:
+        elif type == 2: #tipo2: lâmpada
+            if action == 'ON':
+                bulb.light_on()
+            else:
+                bulb.light_off()
 
     # retorna se deu certo ou nao e um payload que vcs decidem
     return "", STATUS_OK

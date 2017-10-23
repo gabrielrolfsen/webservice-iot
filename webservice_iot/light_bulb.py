@@ -2,7 +2,7 @@ import RPi.GPIO as GPIO
 
 class Light_bulb:
 
-    def __init__(self)
+    def __init__(self):
         GPIO.setmode(GPIO.BOARD)
         GPIO.setupwarnings(False)
         GPIO.setup(16, GPIO.OUT)
