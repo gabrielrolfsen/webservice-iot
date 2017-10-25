@@ -4,7 +4,7 @@ class Light_bulb:
 
     def __init__(self):
         GPIO.setmode(GPIO.BOARD)
-        GPIO.setupwarnings(False)
+#        GPIO.setupwarnings(False)
         GPIO.setup(16, GPIO.OUT)
 
     def light_on(self):

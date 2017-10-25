@@ -65,19 +65,25 @@ def login():
     db = get_db()
     username = request.form['username']
     password = request.form['password']
+
+    # Search the db for a row with the username and password entered
     cursor = db.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
-    # TODO: verify if this is the best way to do it
-    if (cursor.fetchone() > 0):
+    row = cursor.fetchone()
+    print(row)
+
+    # If username and/or password don't exist / else: Login!!
+    if row is None:
+        return Response("{\n\"error:\": \"Username and/or password not valid\"\n}", STATUS_FORBIDDEN)
+    else:
         session['logged_in'] = True
-        return Response("", STATUS_OK)
+        return Response("LOGIN SUCCESSFUL", STATUS_OK)
 
-    return Response("{\n\"error:\": \"Login not valid\"\n}", STATUS_FORBIDDEN)
-
-@app.route('/logout')
+@app.route('/logout', methods=['POST'])
 def logout():
+    # Logout even if the user is not logged in
     session.pop('logged_in', None)
-    flash('You were logged out')
-    return "OK"
+    flash('You were logged out') # What does this line do ?!
+    return "LOGOUT SUCCESSFUL"
 
 #@app.route('/devices')
 #def list_devices():
