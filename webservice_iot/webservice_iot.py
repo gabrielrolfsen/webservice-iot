@@ -93,18 +93,28 @@ def login():
         data = {'name': row[1], 'username': row[2], 'password': row[3]}
         return jsonify(data), STATUS_OK
 
+
 @app.route('/logout', methods=['POST'])
 def logout():
     # Logout even if the user is not logged in
     session.pop('logged_in', None)
-    return "LOGOUT SUCCESSFUL"
+    return Response("",STATUS_OK)
 
-#@app.route('/devices')
-#def list_devices():
-#    db = get_db()
-#    cursor = db.execute('SELECT * FROM devices')
-#    # Descobrir com pega todos os resultados do banco
-#    return cursor.fetchAll()
+# Returns the list of available devices
+@app.route('/devices', methods=['GET'])
+def list_devices():
+    db = get_db()
+    cursor = db.execute('SELECT * FROM devices')
+
+    # Como fazer um loop decente aqui, sou burro me ajuda ?!
+    row = cursor.fetchone()
+    data1 = {'id': row[0], 'name': row[1], 'type': row[2], 'status': row[3], 'creation_date': row[4]}
+    row = cursor.fetchone()
+    data2 = {'id': row[0], 'name': row[1], 'type': row[2], 'status': row[3], 'creation_date': row[4]}
+    data3 = [data1,data2]
+
+    return jsonify(data3),STATUS_OK
+
 
 @app.route('/devices', methods=['POST'])
 def action_device():

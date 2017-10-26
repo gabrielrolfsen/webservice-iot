@@ -10,7 +10,7 @@ CREATE TABLE users (
 
 DROP TABLE IF EXISTS devices;
 CREATE TABLE devices (
-	id integer PRIMARY KEY AUTOINCREMENT NOT NULL,
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
 	name TEXT NOT NULL,
 	type INTEGER NOT NULL,
 	status INTEGER NOT NULL,
@@ -24,4 +24,4 @@ CREATE TABLE devices_permissions (
 	access_level INTEGER NOT NULL,
 	FOREIGN KEY(users_id) REFERENCES users(id),
 	FOREIGN KEY(device_id) REFERENCES devices(id)
-);
+);d
