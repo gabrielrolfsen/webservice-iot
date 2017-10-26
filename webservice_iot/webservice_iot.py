@@ -50,6 +50,8 @@ def close_db(error):
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
 
+
+# Sign-up attempt and callback
 @app.route('/sign-up', methods=['POST'])
 def sign_up():
     db = get_db()
@@ -73,6 +75,7 @@ def sign_up():
         return jsonify(data), STATUS_FORBIDDEN
 
 
+# Login attempt and callback
 @app.route('/login', methods=['POST'])
 def login():
     db = get_db()
@@ -94,27 +97,37 @@ def login():
         return jsonify(data), STATUS_OK
 
 
+# Logout attempt and callback
 @app.route('/logout', methods=['POST'])
 def logout():
+
     # Logout even if the user is not logged in
     session.pop('logged_in', None)
     return Response("",STATUS_OK)
+
 
 # Returns the list of available devices
 @app.route('/devices', methods=['GET'])
 def list_devices():
     db = get_db()
+    
     cursor = db.execute('SELECT * FROM devices')
-
-    # Como fazer um loop decente aqui, sou burro me ajuda ?!
     row = cursor.fetchone()
-    data1 = {'id': row[0], 'name': row[1], 'type': row[2], 'status': row[3], 'creation_date': row[4]}
-    row = cursor.fetchone()
-    data2 = {'id': row[0], 'name': row[1], 'type': row[2], 'status': row[3], 'creation_date': row[4]}
-    data3 = [data1,data2]
 
-    return jsonify(data3),STATUS_OK
+    # if: One device available at least / else: no devices available
+    if row is not None:
+        dic = {'query': []}
 
+        while row is not None:
+            data = {'id': row[0], 'name': row[1], 'type': row[2], 'status': row[3], 'creation_date': row[4]}
+            dic['query'].append(data)
+            row = cursor.fetchone()
+
+            return jsonify(dic['query']), STATUS_OK
+
+    else:
+        data = {'error': 'No available devices'}
+        return jsonify(data), STATUS_FORBIDDEN
 
 @app.route('/devices', methods=['POST'])
 def action_device():
