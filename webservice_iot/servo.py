@@ -1,4 +1,4 @@
-import RPi.GPIO as GPIO
+#import RPi.GPIO as GPIO
 import time
 
 class Servo:
@@ -6,23 +6,23 @@ class Servo:
     CLOSE = 2
 
     def __init__(self, pin = 40, freq = 40):
-        self.state = self.CLOSE
-        GPIO.setmode(GPIO.BOARD)
-        GPIO.setup(pin, GPIO.OUT)
-        self.pwm = GPIO.PWM(pin, freq)
-        self.pwm.start(0)
+#        self.state = self.CLOSE
+#        GPIO.setmode(GPIO.BOARD)
+#        GPIO.setup(pin, GPIO.OUT)
+#        self.pwm = GPIO.PWM(pin, freq)
+#        self.pwm.start(0)
         print("RODANDO INIT")
 
     def open(self):
-        self.pwm.ChangeDutyCycle(Servo.OPEN)
+#        self.pwm.ChangeDutyCycle(Servo.OPEN)
         time.sleep(0.4)
-        self.state = Servo.OPEN
+#        self.state = Servo.OPEN
         print("RODANDO OPEN")
 
     def close(self):
-        self.pwm.ChangeDutyCycle(Servo.CLOSE)
+#        self.pwm.ChangeDutyCycle(Servo.CLOSE)
         time.sleep(0.6)
-        self.state = Servo.CLOSE
+#        self.state = Servo.CLOSE
         print("RODANDO CLOSE")
 
     def estado(self):
@@ -38,6 +38,6 @@ class Servo:
             self.open()
 
     def __del__(self):
-        self.pwm.stop()
-        GPIO.cleanup()
+ #       self.pwm.stop()
+ #       GPIO.cleanup()
         print("RODANDO DEL")

@@ -1,8 +1,9 @@
 import os
 import sqlite3
+import time
 from .servo import Servo
 from .light_bulb import Light_bulb
-from flask import Flask, request, session, g, redirect, url_for, abort, flash, Response
+from flask import Flask, request, session, g, redirect, url_for, abort, flash, Response, json,jsonify
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -52,37 +53,50 @@ def close_db(error):
 @app.route('/sign-up', methods=['POST'])
 def sign_up():
     db = get_db()
-    name = request.form['name']
-    username = request.form['username']
-    password = request.form['password']
-    cursor = db.execute("INSERT INTO users (name, username, password, access) VALUES (?, ?, ?, ?)",
-        (name, username, password, "1"))
-    db.commit()
-    return "Ok", STATUS_CREATED
+
+    # Gets the JSON content received 
+    content = request.get_json()
+
+    # if: pin code is valid, register! / else: invalid pin code
+    if (content['pin_code'] == "123"):
+        # Gets actual time
+        time_now = time.strftime("%c")
+
+        # Inserts the new user into the database
+        cursor = db.execute("INSERT INTO users (name, username, password, access_level, creation_date) VALUES (?, ?, ?, ?, ?)",
+            (content['name'], content['username'], content['password'], "1", time_now))
+        db.commit()
+        return "User created", STATUS_CREATED
+
+    else:
+        data = {'error': 'Pin code invalid'}
+        return jsonify(data), STATUS_FORBIDDEN
+
 
 @app.route('/login', methods=['POST'])
 def login():
     db = get_db()
-    username = request.form['username']
-    password = request.form['password']
 
-    # Search the db for a row with the username and password entered
-    cursor = db.execute('SELECT * FROM users WHERE username=? AND password=?', (username, password))
+    # Gets the JSON content received 
+    content = request.get_json()
+
+    # Search the database for a row with the username and password received in JSON file
+    cursor = db.execute('SELECT * FROM users WHERE username=? AND password=?', (content['username'], content['password']))
     row = cursor.fetchone()
-    print(row)
 
-    # If username and/or password don't exist / else: Login!!
+    # if: username and/or password don't exist / else: Login!!
     if row is None:
-        return Response("{\n\"error:\": \"Username and/or password not valid\"\n}", STATUS_FORBIDDEN)
+        data = {'error': 'Username and/or password not valid'}
+        return jsonify(data), STATUS_FORBIDDEN
     else:
         session['logged_in'] = True
-        return Response("LOGIN SUCCESSFUL", STATUS_OK)
+        data = {'name': row[1], 'username': row[2], 'password': row[3]}
+        return jsonify(data), STATUS_OK
 
 @app.route('/logout', methods=['POST'])
 def logout():
     # Logout even if the user is not logged in
     session.pop('logged_in', None)
-    flash('You were logged out') # What does this line do ?!
     return "LOGOUT SUCCESSFUL"
 
 #@app.route('/devices')
@@ -107,7 +121,7 @@ def action_device():
                 motor.open()
             else:
                 motor.close()
-        elif type == 2: #tipo2: lâmpada
+        elif type == 2: #tipo2: lampada
             if action == 'ON':
                 bulb.light_on()
             else:
@@ -115,5 +129,3 @@ def action_device():
 
     # retorna se deu certo ou nao e um payload que vcs decidem
     return "", STATUS_OK
-
-
