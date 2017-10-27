@@ -2,7 +2,10 @@
 
 class Light_bulb:
 
+
+
     def __init__(self):
+    	self.dimmer_value = 0
     	return
 #       GPIO.setmode(GPIO.BOARD)
 #       GPIO.setupwarnings(False)

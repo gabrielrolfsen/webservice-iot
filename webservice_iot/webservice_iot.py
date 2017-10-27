@@ -112,6 +112,7 @@ def logout():
 def list_devices():
     db = get_db()
     
+    # Search the database for all devices
     cursor = db.execute('SELECT * FROM devices')
     row = cursor.fetchone()
 
@@ -130,12 +131,39 @@ def list_devices():
         data = {'error': 'No available devices'}
         return jsonify(data), STATUS_FORBIDDEN
 
+
+# Returns the data of the lamp with id = <id>
+@app.route('/light_bulb/<id>', methods=['GET'])
+def light_bulb_details(id):
+    db = get_db()
+
+    # Search the database for a row with id received in parameter of the endpoint and parameter = 2 (light_bulb)
+    cursor = db.execute('SELECT * FROM devices WHERE id=? AND type=2', id)
+    row = cursor.fetchone()
+
+    # if: Device is valid, return your data / else: unespected error
+    if row is not None:
+        data = {'id': row[0], "name": row[1], 'type': row[2], 'status': row[3], 'dimmer_value': bulb.dimmer_value,
+            'last_activate_time': row[4]}
+        print(data)
+        return jsonify(data), STATUS_OK
+
+    else:
+        data = {'error': 'Unspected error'}
+        return jsonify(data), STATUS_FORBIDDEN
+
+
+#@app.route('/door_lock/<id>', methods=['GET'])
+#def door_lock_details(id):
+#    #TO DO
+
+
 @app.route('/devices', methods=['POST'])
 def action_device():
     db = get_db()
     device_id = request.form['id']
     action = request.form['action']
-    cursor = db.execute('SELECT type FROM devices WHERE id=?', device_id)
+    cursor = db.execute('SELECT type FROM devices WHERE id=?', id)
     # TODO: verify if this is the best way to do it
     fetched = cursor.fetchone()
     if (fetched):
