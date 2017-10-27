@@ -3,7 +3,7 @@ import sqlite3
 import time
 from .servo import Servo
 from .light_bulb import Light_bulb
-from flask import Flask, request, session, g, redirect, url_for, abort, flash, Response, json,jsonify
+from flask import Flask, request, session, g, redirect, url_for, abort, flash, Response, json, jsonify
 
 app = Flask(__name__)
 app.config.from_object(__name__)
@@ -20,6 +20,7 @@ app.config["JSON_SORT_KEYS"] = False
 STATUS_OK = 200
 STATUS_CREATED = 201
 STATUS_FORBIDDEN = 401
+STATUS_NOT_FOUND = 404
 
 motor = Servo()
 bulb = Light_bulb()
@@ -129,7 +130,7 @@ def list_devices():
 
     else:
         data = {'error': 'No available devices'}
-        return jsonify(data), STATUS_FORBIDDEN
+        return jsonify(data), STATUS_NOT_FOUND
 
 
 # Returns the data of the lamp with id = <id>
@@ -153,31 +154,58 @@ def light_bulb_details(id):
         return jsonify(data), STATUS_FORBIDDEN
 
 
+#To Do @brunohideki
 #@app.route('/door_lock/<id>', methods=['GET'])
 #def door_lock_details(id):
-#    #TO DO
 
 
-@app.route('/devices', methods=['POST'])
+@app.route('/devices/action', methods=['POST'])
 def action_device():
     db = get_db()
-    device_id = request.form['id']
-    action = request.form['action']
-    cursor = db.execute('SELECT type FROM devices WHERE id=?', id)
-    # TODO: verify if this is the best way to do it
-    fetched = cursor.fetchone()
-    if (fetched):
-        type = fetched['type']
-        if type == 1: # tipo 1: fechadura
-            if action == 'OPEN':
-                motor.open()
-            else:
-                motor.close()
-        elif type == 2: #tipo2: lampada
-            if action == 'ON':
-                bulb.light_on()
-            else:
-                bulb.light_off()
 
-    # retorna se deu certo ou nao e um payload que vcs decidem
-    return "", STATUS_OK
+    # Gets the JSON content received 
+    content = request.get_json()
+
+    # Search the database for a row with id received in parameter of the endpoint
+    cursor = db.execute('SELECT * FROM devices WHERE id=?', content['id'])
+    row = cursor.fetchone()
+
+    if row is not None:
+        print(row[0], row[1], row[2], row[3], row[4])
+
+        # fechadura
+        if (content['type'] == "1"):
+            print("Acao no motor") 
+            #To Do @brunohideki
+
+        # lampada
+        elif (content['type'] == "2"): 
+            if (content['action'] == "CHANGE_STATUS"):
+                if(content['value'] == "ON"):
+                    bulb.light_on()
+
+                elif(content['value'] == "OFF"):
+                    bulb.light_off()
+
+                else:
+                    data = {'error': 'Value field is wrong'}
+                    return jsonify(data), STATUS_FORBIDDEN
+            elif (content['action'] == "DIMMER"):
+                print("Acao no dimmer")
+                #To Do
+
+            else:
+                data = {'error': 'Action field is wrong'}
+                return jsonify(data), STATUS_FORBIDDEN
+
+            # Create and return a payload with status 200
+            data = {"id": row[0], "type": row[2], "status": bulb.light_status, "dimmer": bulb.dimmer_value}
+            return jsonify(data), STATUS_OK
+
+        else:
+            data = {'error': 'Type field is wrong'}
+            return jsonify(data), STATUS_FORBIDDEN
+    else:
+        data = {'error': 'Unspected error'}
+        return jsonify(data), STATUS_FORBIDDEN
+
