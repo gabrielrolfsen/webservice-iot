@@ -11,7 +11,7 @@ class Servo:
 #        GPIO.setup(pin, GPIO.OUT)
 #        self.pwm = GPIO.PWM(pin, freq)
 #        self.pwm.start(0)
-        print("RODANDO INIT")
+        return
 
     def open(self):
 #        self.pwm.ChangeDutyCycle(Servo.OPEN)
@@ -40,4 +40,4 @@ class Servo:
     def __del__(self):
  #       self.pwm.stop()
  #       GPIO.cleanup()
-        print("RODANDO DEL")
+        return

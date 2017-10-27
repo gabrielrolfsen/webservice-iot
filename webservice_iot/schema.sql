@@ -24,4 +24,4 @@ CREATE TABLE devices_permissions (
 	access_level INTEGER NOT NULL,
 	FOREIGN KEY(users_id) REFERENCES users(id),
 	FOREIGN KEY(device_id) REFERENCES devices(id)
-);d
+);

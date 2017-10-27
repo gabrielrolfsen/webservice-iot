@@ -15,6 +15,7 @@ app.config.update(dict(
     PASSWORD='default'
 ))
 app.config.from_envvar('WEBSERVER_SETTINGS', silent=True)
+app.config["JSON_SORT_KEYS"] = False
 
 STATUS_OK = 200
 STATUS_CREATED = 201
@@ -123,7 +124,7 @@ def list_devices():
             dic['query'].append(data)
             row = cursor.fetchone()
 
-            return jsonify(dic['query']), STATUS_OK
+        return jsonify(dic['query']), STATUS_OK
 
     else:
         data = {'error': 'No available devices'}
