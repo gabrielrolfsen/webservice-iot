@@ -122,7 +122,7 @@ def list_devices():
         dic = {'query': []}
 
         while row is not None:
-            data = {'id': row[0], 'name': row[1], 'type': row[2], 'status': row[3], 'creation_date': row[4]}
+            data = {'id': str(row[0]), 'name': row[1], 'type': str(row[2]), 'status': row[3], 'creation_date': row[4]}
             dic['query'].append(data)
             row = cursor.fetchone()
 
@@ -144,7 +144,7 @@ def light_bulb_details(id):
 
     # if: Device is valid, return your data / else: unespected error
     if row is not None:
-        data = {'id': row[0], "name": row[1], 'type': row[2], 'status': row[3], 'dimmer_value': bulb.dimmer_value,
+        data = {'id': str(row[0]), "name": row[1], 'type': str(row[2]), 'status': row[3], 'dimmer_value': str(bulb.dimmer_value),
             'last_activate_time': row[4]}
         print(data)
         return jsonify(data), STATUS_OK
@@ -192,14 +192,23 @@ def action_device():
                     return jsonify(data), STATUS_FORBIDDEN
             elif (content['action'] == "DIMMER"):
                 print("Acao no dimmer")
-                #To Do
+                print(content['value'])
+                value = int(content['value'])
+                bulb.set_dimmer_value(value)
+                print(bulb.dimmer_value)
+                print(bulb.light_status)
+
 
             else:
                 data = {'error': 'Action field is wrong'}
                 return jsonify(data), STATUS_FORBIDDEN
 
             # Create and return a payload with status 200
-            data = {"id": row[0], "type": row[2], "status": bulb.light_status, "dimmer": bulb.dimmer_value}
+            #To Do atualizar tabela devices com o novo status
+            #TBD checar se deve ser atualizada a ultima alteracao de fato no device na tabela
+            #To Do mudar a variavel status de integer para text
+            # Rever todo fluxo com calma, para evitar que valores errados sejam enviados
+            data = {"id": content['id'], "type": content['type'], "status": bulb.light_status, "dimmer": str(bulb.dimmer_value)}
             return jsonify(data), STATUS_OK
 
         else:
@@ -209,3 +218,5 @@ def action_device():
         data = {'error': 'Unspected error'}
         return jsonify(data), STATUS_FORBIDDEN
 
+    # Comportamento default, lembrar de retirar quando o metodo estiver completo    
+    return "", STATUS_OK

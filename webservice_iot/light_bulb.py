@@ -21,12 +21,15 @@ class Light_bulb:
 		print("Desligou")
 #       GPIO.output(16, GPIO.LOW)
 
-#	def set_dimmer_value(new_value):
-#		if (new_value < 0):
-#			self.dimmer_value = 0
-#		elif (new_value > 10):
-#			self.dimmer_value = 10
-#		else:
-#			self.dimmer_value = new_value
+	def set_dimmer_value(self,new_value):
+		if (new_value < 0):
+			self.dimmer_value = 0
+			self.light_status = "OFF"
+		elif (new_value > 10):
+			self.dimmer_value = 10
+			self.light_status = "ON"
+		else:
+			self.dimmer_value = new_value
+			self.light_status = "ON"
 
-#		return self.dimmer_value
+	#To Do dimmer function
