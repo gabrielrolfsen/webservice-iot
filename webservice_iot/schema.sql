@@ -14,7 +14,7 @@ CREATE TABLE devices (
 	name TEXT NOT NULL,
 	type INTEGER NOT NULL,
 	status INTEGER NOT NULL,
-	creation_date TEXT NOT NULL
+	last_active_time TEXT NOT NULL
 );
 
 DROP TABLE IF EXISTS devices_permissions;

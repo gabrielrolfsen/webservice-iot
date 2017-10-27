@@ -198,7 +198,7 @@ def action_device():
 
             # Updates the database with the new status and last action time
             time_now = time.strftime("%c")
-            cursor = db.execute("UPDATE devices SET status=?, creation_date=? WHERE id=?", 
+            cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE id=?", 
                 (bulb.light_status, time_now, content['id']))
             db.commit()
 
