@@ -146,7 +146,6 @@ def light_bulb_details(id):
     if row is not None:
         data = {'id': str(row[0]), "name": row[1], 'type': str(row[2]), 'status': row[3], 'dimmer_value': str(bulb.dimmer_value),
             'last_activate_time': row[4]}
-        print(data)
         return jsonify(data), STATUS_OK
 
     else:
@@ -157,7 +156,6 @@ def light_bulb_details(id):
 #To Do @brunohideki
 #@app.route('/door_lock/<id>', methods=['GET'])
 #def door_lock_details(id):
-
 
 @app.route('/devices/action', methods=['POST'])
 def action_device():
@@ -171,7 +169,6 @@ def action_device():
     row = cursor.fetchone()
 
     if row is not None:
-        print(row[0], row[1], row[2], row[3], row[4])
 
         # fechadura
         if (content['type'] == "1"):
@@ -190,24 +187,21 @@ def action_device():
                 else:
                     data = {'error': 'Value field is wrong'}
                     return jsonify(data), STATUS_FORBIDDEN
+
             elif (content['action'] == "DIMMER"):
-                print("Acao no dimmer")
-                print(content['value'])
                 value = int(content['value'])
                 bulb.set_dimmer_value(value)
-                print(bulb.dimmer_value)
-                print(bulb.light_status)
-
 
             else:
                 data = {'error': 'Action field is wrong'}
                 return jsonify(data), STATUS_FORBIDDEN
 
-            # Create and return a payload with status 200
-            #To Do atualizar tabela devices com o novo status
-            #TBD checar se deve ser atualizada a ultima alteracao de fato no device na tabela
-            #To Do mudar a variavel status de integer para text
-            # Rever todo fluxo com calma, para evitar que valores errados sejam enviados
+            # Updates the database with the new status and last action time
+            time_now = time.strftime("%c")
+            cursor = db.execute("UPDATE devices SET status=?, creation_date=? WHERE id=?", 
+                (bulb.light_status, time_now, content['id']))
+            db.commit()
+
             data = {"id": content['id'], "type": content['type'], "status": bulb.light_status, "dimmer": str(bulb.dimmer_value)}
             return jsonify(data), STATUS_OK
 
