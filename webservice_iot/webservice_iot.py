@@ -123,7 +123,7 @@ def list_devices():
         dic = {'query': []}
 
         while row is not None:
-            data = {'id': str(row[0]), 'name': row[1], 'type': str(row[2]), 'status': row[3], 'creation_date': row[4]}
+            data = {'id': str(row[0]), 'name': row[1], 'type': str(row[2]), 'status': row[3], 'last_active_time': row[4]}
             dic['query'].append(data)
             row = cursor.fetchone()
 
