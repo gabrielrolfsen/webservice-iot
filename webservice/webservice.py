@@ -9,20 +9,11 @@
 import os
 import sqlite3
 import time
-import threading
-import RPi.GPIO as GPIO
-from .servo import Servo
-from .light_bulb import Light_bulb
+import socket
 from flask import Flask, request, session, g, redirect, url_for, abort, flash, Response, json, jsonify
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(19, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-GPIO.setup(15, GPIO.OUT)
-GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-
 
 app.config.update(dict(
     DATABASE=os.path.join(app.root_path, 'main.db'),
@@ -38,8 +29,7 @@ STATUS_CREATED = 201
 STATUS_FORBIDDEN = 401
 STATUS_NOT_FOUND = 404
 
-motor = Servo()
-bulb = Light_bulb()
+tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 def connect_db():
     """Connects to the specific database."""
@@ -184,6 +174,11 @@ def action_device():
     cursor = db.execute('SELECT * FROM devices WHERE id=?', content['id'])
     row = cursor.fetchone()
 
+    device_ip = 'ip.do.rasp.berry'
+    device_port = int('porta_do_device')
+    tcp.connect((device_ip, device_port))
+    response = ""
+
     if row is not None:
 
         # fechadura
@@ -195,18 +190,20 @@ def action_device():
         elif (content['type'] == "2"): 
             if (content['action'] == "CHANGE_STATUS"):
                 if(content['value'] == "ON"):
-                    bulb.light_on()
+                    tcp.send("ON")
 
                 elif(content['value'] == "OFF"):
-                    bulb.light_off()
+                    tcp.send("OFF")
 
                 else:
                     data = {'error': 'Value field is wrong'}
                     return jsonify(data), STATUS_FORBIDDEN
 
             elif (content['action'] == "DIMMER"):
-                value = int(content['value'])
-                bulb.set_dimmer_value(value)
+                tcp.send("SET," + content['value'])
+
+            elif (content['action'] == "STATUS"):
+                response = tcp.recv(8)
 
             else:
                 data = {'error': 'Action field is wrong'}
@@ -228,46 +225,6 @@ def action_device():
         data = {'error': 'Unspected error'}
         return jsonify(data), STATUS_FORBIDDEN
 
+    tcp.close()
     # Comportamento default, lembrar de retirar quando o metodo estiver completo    
-    return "", STATUS_OK
-
-# Power button treatment
-def button_press(channel):
-    with app.app_context():
-
-        db = get_db()
-
-        if (bulb.light_status == "OFF"):
-            bulb.light_on()
-
-        else:
-            bulb.light_off()
-
-        # Updates the database with the new status and last action time
-        time_now = time.strftime("%c")
-        cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE type=2", 
-            (bulb.light_status, time_now))
-        db.commit()
-
-def zero_cross_detected(channel):
-
-        t = threading.Thread(name='dimmer_function', target=dimmer_function)
-        t.start()
-
-def dimmer_function():
-
-        if(bulb.dimmer_value == 0):
-            GPIO.output(15, GPIO.LOW)
-
-        elif(bulb.dimmer_value == 10):
-            GPIO.output(15, GPIO.HIGH)
-
-        else:
-            time.sleep(bulb.timer_dimmer)
-            GPIO.output(15, GPIO.HIGH)
-            time.sleep(0.000048)
-            GPIO.output(15, GPIO.LOW)
-
-# Interrupt when the power button is pressed
-GPIO.add_event_detect(19, GPIO.FALLING, callback=button_press, bouncetime = 1000)
-GPIO.add_event_detect(16, GPIO.RISING, callback=zero_cross_detected, bouncetime = 8)
+    return response, STATUS_OK

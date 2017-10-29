@@ -1,1 +1,0 @@
-from .webservice_iot import app
