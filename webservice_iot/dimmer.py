@@ -10,8 +10,8 @@ t2 = 0.000006 #0.000006
 GPIO.setmode(GPIO.BOARD)
 GPIO.setwarnings(False)
 
-GPIO.setup(15, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.setup(16, GPIO.OUT)
+GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.setup(15, GPIO.OUT)
 GPIO.setup(37, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
 def zc(channel):
@@ -24,11 +24,11 @@ def zc(channel):
     milli_sec = int(round(time.time() * 1000))
     print(milli_sec)
     time.sleep(t1)
-    GPIO.output(16,GPIO.HIGH)
+    GPIO.output(15,GPIO.HIGH)
     time.sleep(t2)
-    GPIO.output(16, GPIO.LOW)
+    GPIO.output(15, GPIO.LOW)
 
-GPIO.add_event_detect(15, GPIO.RISING, callback=zc, bouncetime = 7)
+GPIO.add_event_detect(16, GPIO.RISING, callback=zc, bouncetime = 7)
 
 try:
     print ("Waiting...\n")

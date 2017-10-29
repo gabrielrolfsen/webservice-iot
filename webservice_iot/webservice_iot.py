@@ -1,10 +1,15 @@
-# Caso executar fora de um raspberry pi, comentar a linha 6 (import RPi.GPIO as GPIO) e as
-# rotinas de interrupcao ao fim do codigo. Comentar tambem todas mencoes GPIO nos arquivos
-# light_bulb e servo.
+##############################################################################################
+#                                                                                            #
+# Caso executar fora de um raspberry pi, comentar a linha 6 (import RPi.GPIO as GPIO) e as   #
+# rotinas de interrupcao ao fim do codigo. Comentar tambem todas mencoes GPIO nos arquivos   #
+# light_bulb e servo.                                                                        #
+#                                                                                            #
+##############################################################################################
 
 import os
 import sqlite3
 import time
+import threading
 import RPi.GPIO as GPIO
 from .servo import Servo
 from .light_bulb import Light_bulb
@@ -15,6 +20,9 @@ app.config.from_object(__name__)
 
 GPIO.setmode(GPIO.BOARD)
 GPIO.setup(19, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(15, GPIO.OUT)
+GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
 
 app.config.update(dict(
     DATABASE=os.path.join(app.root_path, 'main.db'),
@@ -183,7 +191,7 @@ def action_device():
             print("Acao no motor") 
             #To Do @brunohideki
 
-        # lampada
+        # Lighting Behaviors
         elif (content['type'] == "2"): 
             if (content['action'] == "CHANGE_STATUS"):
                 if(content['value'] == "ON"):
@@ -223,6 +231,7 @@ def action_device():
     # Comportamento default, lembrar de retirar quando o metodo estiver completo    
     return "", STATUS_OK
 
+# Power button treatment
 def button_press(channel):
     with app.app_context():
 
@@ -240,5 +249,25 @@ def button_press(channel):
             (bulb.light_status, time_now))
         db.commit()
 
-GPIO.add_event_detect(19, GPIO.FALLING, callback=button_press, bouncetime = 1000)
+def zero_cross_detected(channel):
 
+        t = threading.Thread(name='dimmer_function', target=dimmer_function)
+        t.start()
+
+def dimmer_function():
+
+        if(bulb.dimmer_value == 0):
+            GPIO.output(15, GPIO.LOW)
+
+        elif(bulb.dimmer_value == 10):
+            GPIO.output(15, GPIO.HIGH)
+
+        else:
+            time.sleep(bulb.timer_dimmer)
+            GPIO.output(15, GPIO.HIGH)
+            time.sleep(0.000048)
+            GPIO.output(15, GPIO.LOW)
+
+# Interrupt when the power button is pressed
+GPIO.add_event_detect(19, GPIO.FALLING, callback=button_press, bouncetime = 1000)
+GPIO.add_event_detect(16, GPIO.RISING, callback=zero_cross_detected, bouncetime = 8)
