@@ -265,7 +265,7 @@ def dimmer_function():
         else:
             time.sleep(bulb.timer_dimmer)
             GPIO.output(15, GPIO.HIGH)
-            time.sleep(0.000048)
+            time.sleep(0.00006)
             GPIO.output(15, GPIO.LOW)
 
 # Interrupt when the power button is pressed
