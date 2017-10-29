@@ -1,13 +1,20 @@
+# Caso executar fora de um raspberry pi, comentar a linha 6 (import RPi.GPIO as GPIO) e as
+# rotinas de interrupcao ao fim do codigo. Comentar tambem todas mencoes GPIO nos arquivos
+# light_bulb e servo.
+
 import os
 import sqlite3
 import time
+import RPi.GPIO as GPIO
 from .servo import Servo
 from .light_bulb import Light_bulb
 from flask import Flask, request, session, g, redirect, url_for, abort, flash, Response, json, jsonify
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-app.config["JSON_SORT_KEYS"] = False
+
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(19, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 app.config.update(dict(
     DATABASE=os.path.join(app.root_path, 'main.db'),
@@ -215,3 +222,23 @@ def action_device():
 
     # Comportamento default, lembrar de retirar quando o metodo estiver completo    
     return "", STATUS_OK
+
+def button_press(channel):
+    with app.app_context():
+
+        db = get_db()
+
+        if (bulb.light_status == "OFF"):
+            bulb.light_on()
+
+        else:
+            bulb.light_off()
+
+        # Updates the database with the new status and last action time
+        time_now = time.strftime("%c")
+        cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE type=2", 
+            (bulb.light_status, time_now))
+        db.commit()
+
+GPIO.add_event_detect(19, GPIO.FALLING, callback=button_press, bouncetime = 1000)
+
