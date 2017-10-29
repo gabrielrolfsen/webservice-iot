@@ -148,6 +148,9 @@ def list_devices():
         data = {'error': 'No available devices'}
         return jsonify(data), STATUS_NOT_FOUND
 
+#To Do @brunohideki
+#@app.route('/door_lock/<id>', methods=['GET'])
+#def door_lock_details(id):
 
 # Returns the data of the lamp with id = <id>
 @app.route('/light_bulb/<id>', methods=['GET'])
@@ -168,10 +171,6 @@ def light_bulb_details(id):
         data = {'error': 'Unspected error'}
         return jsonify(data), STATUS_FORBIDDEN
 
-
-#To Do @brunohideki
-#@app.route('/door_lock/<id>', methods=['GET'])
-#def door_lock_details(id):
 
 @app.route('/devices/action', methods=['POST'])
 def action_device():
@@ -231,7 +230,9 @@ def action_device():
     # Comportamento default, lembrar de retirar quando o metodo estiver completo    
     return "", STATUS_OK
 
-# Power button treatment
+###################################### Interrupt ######################################################
+
+# When the power button is pressed the code calls this routine
 def button_press(channel):
     with app.app_context():
 
@@ -249,25 +250,24 @@ def button_press(channel):
             (bulb.light_status, time_now))
         db.commit()
 
+# When the alternating current goes through zero the code calls this routine
 def zero_cross_detected(channel):
 
-        t = threading.Thread(name='dimmer_function', target=dimmer_function)
-        t.start()
-
-def dimmer_function():
-
         if(bulb.dimmer_value == 0):
-            GPIO.output(15, GPIO.LOW)
+            if (bulb.light_status == "ON"):
+                GPIO.output(15, GPIO.LOW)
 
         elif(bulb.dimmer_value == 10):
-            GPIO.output(15, GPIO.HIGH)
+            if (bulb.light_status == "OFF"):
+                GPIO.output(15, GPIO.HIGH)
 
         else:
             time.sleep(bulb.timer_dimmer)
             GPIO.output(15, GPIO.HIGH)
-            time.sleep(0.00006)
+            time.sleep(0.000006)
             GPIO.output(15, GPIO.LOW)
 
 # Interrupt when the power button is pressed
 GPIO.add_event_detect(19, GPIO.FALLING, callback=button_press, bouncetime = 1000)
+# Interrupt when alternating current goes through zero volts
 GPIO.add_event_detect(16, GPIO.RISING, callback=zero_cross_detected, bouncetime = 8)
