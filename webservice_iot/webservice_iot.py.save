@@ -9,11 +9,20 @@
 import os
 import sqlite3
 import time
-import socket
+import threading
+import RPi.GPIO as GPIO
+from .servo import Servo
+from .light_bulb import Light_bulb
 from flask import Flask, request, session, g, redirect, url_for, abort, flash, Response, json, jsonify
 
 app = Flask(__name__)
 app.config.from_object(__name__)
+
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(19, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+GPIO.setup(15, GPIO.OUT)
+GPIO.setup(16, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+
 
 app.config.update(dict(
     DATABASE=os.path.join(app.root_path, 'main.db'),
@@ -29,7 +38,8 @@ STATUS_CREATED = 201
 STATUS_FORBIDDEN = 401
 STATUS_NOT_FOUND = 404
 
-tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+motor = Servo()
+bulb = Light_bulb()
 
 def connect_db():
     """Connects to the specific database."""
@@ -128,7 +138,7 @@ def list_devices():
         dic = {'query': []}
 
         while row is not None:
-            data = {'id': str(row[0]), 'name': row[1], 'type': str(row[2]), 'status': row[3], 'last_active_time': row[4]}
+            data = {'id': row[0], 'name': row[1], 'type': row[2], 'status': row[3], 'last_active_time': row[4]}
             dic['query'].append(data)
             row = cursor.fetchone()
 
@@ -138,6 +148,24 @@ def list_devices():
         data = {'error': 'No available devices'}
         return jsonify(data), STATUS_NOT_FOUND
 
+#To Do @brunohideki
+@app.route('/door_lock/<id>', methods=['GET'])
+def door_locl_details(id):
+    db = get_db()
+
+    # Search the database for a row with id received in parameter of the endpoint and parameter = 2 (light_bulb)
+    cursor = db.execute('SELECT * FROM devices WHERE id=? AND type=1', id)
+    row = cursor.fetchone()
+
+    # if: Device is valid, return your data / else: unespected error
+    if row is not None:
+        data = {'id': str(row[0]), "name": row[1], 'type': str(row[2]), 'status': row[3], 
+            'last_activate_time': row[4]}
+        return jsonify(data), STATUS_OK
+
+    else:
+        data = {'error': 'Unspected error'}
+        return jsonify(data), STATUS_FORBIDDEN
 
 # Returns the data of the lamp with id = <id>
 @app.route('/light_bulb/<id>', methods=['GET'])
@@ -150,7 +178,7 @@ def light_bulb_details(id):
 
     # if: Device is valid, return your data / else: unespected error
     if row is not None:
-        data = {'id': str(row[0]), "name": row[1], 'type': str(row[2]), 'status': row[3], 'dimmer_value': str(bulb.dimmer_value),
+        data = {'id': row[0], "name": row[1], 'type': row[2], 'status': row[3], 'dimmer_value': bulb.dimmer_value,
             'last_activate_time': row[4]}
         return jsonify(data), STATUS_OK
 
@@ -159,25 +187,16 @@ def light_bulb_details(id):
         return jsonify(data), STATUS_FORBIDDEN
 
 
-#To Do @brunohideki
-#@app.route('/door_lock/<id>', methods=['GET'])
-#def door_lock_details(id):
-
 @app.route('/devices/action', methods=['POST'])
 def action_device():
     db = get_db()
 
     # Gets the JSON content received 
-    content = request.get_json()
+    co
 
     # Search the database for a row with id received in parameter of the endpoint
-    cursor = db.execute('SELECT * FROM devices WHERE id=?', content['id'])
+    cursor = db.execute('SELECT * FROM devices WHERE id=?', str(content['id']))
     row = cursor.fetchone()
-
-    device_ip = 'ip.do.rasp.berry'
-    device_port = int('porta_do_device')
-    tcp.connect((device_ip, device_port))
-    response = ""
 
     if row is not None:
 
@@ -185,25 +204,32 @@ def action_device():
         if (content['type'] == "1"):
             print("Acao no motor") 
             #To Do @brunohideki
+            if (content['action'] == "CHANGE_STATUS"):
+                if(content['value'] == "OPEN"):
+                    servo.open()
 
+                elif(content['value'] == "CLOSE"):
+                    servo.close()
+                else:
+                    data = {'error': 'Value field is wrong'}
+                    return jsonify(data), STATUS_FORBIDDEN
+                
         # Lighting Behaviors
-        elif (content['type'] == "2"): 
+        elif (content['type'] == 2): 
             if (content['action'] == "CHANGE_STATUS"):
                 if(content['value'] == "ON"):
-                    tcp.send("ON")
+                    bulb.light_on()
 
                 elif(content['value'] == "OFF"):
-                    tcp.send("OFF")
+                    bulb.light_off()
 
                 else:
                     data = {'error': 'Value field is wrong'}
                     return jsonify(data), STATUS_FORBIDDEN
 
             elif (content['action'] == "DIMMER"):
-                tcp.send("SET," + content['value'])
-
-            elif (content['action'] == "STATUS"):
-                response = tcp.recv(8)
+                value = int(content['value'])
+                bulb.set_dimmer_value(value)
 
             else:
                 data = {'error': 'Action field is wrong'}
@@ -225,6 +251,65 @@ def action_device():
         data = {'error': 'Unspected error'}
         return jsonify(data), STATUS_FORBIDDEN
 
-    tcp.close()
     # Comportamento default, lembrar de retirar quando o metodo estiver completo    
-    return response, STATUS_OK
+    return "", STATUS_OK
+
+###################################### Interrupt ######################################################
+
+#Power button treatment servo
+#def button_press1(channel):
+#    with app.app_context():
+
+#        db = get_db()
+
+#        if (servo.servo_status == "CLOSE"):
+#            servo.open()
+#        else:
+#            servo.close()
+
+        # Updates the database with the new status and last action time
+#        time_now = time.strftime("%c")
+#        cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE type=1", 
+#            (servo.servo_status, time_now))
+#        db.commit()
+
+# When the power button is pressed the code calls this routine
+def button_press(channel):
+    with app.app_context():
+
+        db = get_db()
+
+        if (bulb.light_status == "OFF"):
+            bulb.light_on()
+
+        else:
+            bulb.light_off()
+
+        # Updates the database with the new status and last action time
+        time_now = time.strftime("%c")
+        cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE type=2", 
+            (bulb.light_status, time_now))
+        db.commit()
+
+# When the alternating current goes through zero the code calls this routine
+def zero_cross_detected(channel):
+
+        if(bulb.dimmer_value == 0):
+            if (bulb.light_status == "ON"):
+                GPIO.output(15, GPIO.LOW)
+
+        elif(bulb.dimmer_value == 10):
+            if (bulb.light_status == "OFF"):
+                GPIO.output(15, GPIO.HIGH)
+
+        else:
+            time.sleep(bulb.timer_dimmer)
+            GPIO.output(15, GPIO.HIGH)
+            time.sleep(0.000006)
+            GPIO.output(15, GPIO.LOW)
+
+# Interrupt when the power button is pressed
+GPIO.add_event_detect(19, GPIO.FALLING, callback=button_press, bouncetime = 1000)
+# Interrupt when alternating current goes through zero volts
+GPIO.add_event_detect(16, GPIO.RISING, callback=zero_cross_detected, bouncetime = 8)
+#GPIO.add_event_detect(29, GPIO.RISING, callback=button_press1, bouncetime = 1000)
