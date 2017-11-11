@@ -65,12 +65,12 @@ class Light_bulb:
 		elif (new_value == 8):
 			self.dimmer_value = new_value
 			self.light_status = "ON"
-			self.timer_dimmer = 0.00014
+			self.timer_dimmer = 0.0014
 
 		elif (new_value == 9):
 			self.dimmer_value = new_value
 			self.light_status = "ON"
-			self.timer_dimmer = 0.00007
+			self.timer_dimmer = 0.0007
 
 		elif (new_value == 10) or (new_value > 10):
 			self.dimmer_value = 10
@@ -80,4 +80,3 @@ class Light_bulb:
 		else:
 			self.dimmer_value = new_value
 			self.light_status = "ON"
-			

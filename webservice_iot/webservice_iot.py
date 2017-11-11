@@ -68,13 +68,12 @@ def close_db(error):
     if hasattr(g, 'sqlite_db'):
         g.sqlite_db.close()
 
-
 # Sign-up attempt and callback
 @app.route('/sign-up', methods=['POST'])
 def sign_up():
     db = get_db()
 
-    # Gets the JSON content received 
+    # Gets the JSON content received
     content = request.get_json()
 
     # if: pin code is valid, register! / else: invalid pin code
@@ -98,7 +97,7 @@ def sign_up():
 def login():
     db = get_db()
 
-    # Gets the JSON content received 
+    # Gets the JSON content received
     content = request.get_json()
 
     # Search the database for a row with the username and password received in JSON file
@@ -128,7 +127,7 @@ def logout():
 @app.route('/devices', methods=['GET'])
 def list_devices():
     db = get_db()
-    
+
     # Search the database for all devices
     cursor = db.execute('SELECT * FROM devices')
     row = cursor.fetchone()
@@ -159,7 +158,7 @@ def door_locl_details(id):
 
     # if: Device is valid, return your data / else: unespected error
     if row is not None:
-        data = {'id': str(row[0]), "name": row[1], 'type': str(row[2]), 'status': row[3], 
+        data = {'id': str(row[0]), "name": row[1], 'type': str(row[2]), 'status': row[3],
             'last_activate_time': row[4]}
         return jsonify(data), STATUS_OK
 
@@ -191,7 +190,7 @@ def light_bulb_details(id):
 def action_device():
     db = get_db()
 
-    # Gets the JSON content received 
+    # Gets the JSON content received
     content = request.get_json()
 
     # Search the database for a row with id received in parameter of the endpoint
@@ -202,7 +201,7 @@ def action_device():
 
         # fechadura
         if (content['type'] == 1):
-            print("Acao no motor") 
+            print("Acao no motor")
             #To Do @brunohideki
             if (content['action'] == "CHANGE_STATUS"):
                 if(content['value'] == "OPEN"):
@@ -213,9 +212,9 @@ def action_device():
                 else:
                     data = {'error': 'Value field is wrong'}
                     return jsonify(data), STATUS_FORBIDDEN
-                
+
         # Lighting Behaviors
-        elif (content['type'] == 2): 
+        elif (content['type'] == 2):
             if (content['action'] == "CHANGE_STATUS"):
                 if(content['value'] == "ON"):
                     bulb.light_on()
@@ -237,7 +236,7 @@ def action_device():
 
             # Updates the database with the new status and last action time
             time_now = time.strftime("%c")
-            cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE id=?", 
+            cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE id=?",
                 (bulb.light_status, time_now, content['id']))
             db.commit()
 
@@ -251,7 +250,7 @@ def action_device():
         data = {'error': 'Unspected error'}
         return jsonify(data), STATUS_FORBIDDEN
 
-    # Comportamento default, lembrar de retirar quando o metodo estiver completo    
+    # Comportamento default, lembrar de retirar quando o metodo estiver completo
     return "", STATUS_OK
 
 ###################################### Interrupt ######################################################
@@ -269,14 +268,14 @@ def action_device():
 
         # Updates the database with the new status and last action time
 #        time_now = time.strftime("%c")
-#        cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE type=1", 
+#        cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE type=1",
 #            (servo.servo_status, time_now))
 #        db.commit()
 
 # When the power button is pressed the code calls this routine
 def button_press(channel):
     with app.app_context():
- 
+
         db = get_db()
 
         if (bulb.light_status == "OFF"):
@@ -287,7 +286,7 @@ def button_press(channel):
 
         # Updates the database with the new status and last action time
         time_now = time.strftime("%c")
-        cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE type=2", 
+        cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE type=2",
             (bulb.light_status, time_now))
         db.commit()
 
