@@ -149,8 +149,23 @@ def list_devices():
         return jsonify(data), STATUS_NOT_FOUND
 
 #To Do @brunohideki
-#@app.route('/door_lock/<id>', methods=['GET'])
-#def door_lock_details(id):
+@app.route('/door_lock/<id>', methods=['GET'])
+def door_locl_details(id):
+    db = get_db()
+
+    # Search the database for a row with id received in parameter of the endpoint and parameter = 2 (light_bulb)
+    cursor = db.execute('SELECT * FROM devices WHERE id=? AND type=1', id)
+    row = cursor.fetchone()
+
+    # if: Device is valid, return your data / else: unespected error
+    if row is not None:
+        data = {'id': str(row[0]), "name": row[1], 'type': str(row[2]), 'status': row[3], 
+            'last_activate_time': row[4]}
+        return jsonify(data), STATUS_OK
+
+    else:
+        data = {'error': 'Unspected error'}
+        return jsonify(data), STATUS_FORBIDDEN
 
 # Returns the data of the lamp with id = <id>
 @app.route('/light_bulb/<id>', methods=['GET'])
@@ -189,7 +204,16 @@ def action_device():
         if (content['type'] == "1"):
             print("Acao no motor") 
             #To Do @brunohideki
+            if (content['action'] == "CHANGE_STATUS"):
+                if(content['value'] == "OPEN"):
+                    servo.open()
 
+                elif(content['value'] == "CLOSE"):
+                    servo.close()
+                else:
+                    data = {'error': 'Value field is wrong'}
+                    return jsonify(data), STATUS_FORBIDDEN
+                
         # Lighting Behaviors
         elif (content['type'] == "2"): 
             if (content['action'] == "CHANGE_STATUS"):
@@ -232,6 +256,23 @@ def action_device():
 
 ###################################### Interrupt ######################################################
 
+ Power button treatment servo
+def button_press1(channel):
+    with app.app_context():
+
+        db = get_db()
+
+        if (servo.servo_status == "CLOSE"):
+            servo.open()
+        else:
+            servo.close()
+
+        # Updates the database with the new status and last action time
+        time_now = time.strftime("%c")
+        cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE type=1", 
+            (servo.servo_status, time_now))
+        db.commit()
+
 # When the power button is pressed the code calls this routine
 def button_press(channel):
     with app.app_context():
@@ -271,3 +312,4 @@ def zero_cross_detected(channel):
 GPIO.add_event_detect(19, GPIO.FALLING, callback=button_press, bouncetime = 1000)
 # Interrupt when alternating current goes through zero volts
 GPIO.add_event_detect(16, GPIO.RISING, callback=zero_cross_detected, bouncetime = 8)
+GPIO.add_event_detect(29, GPIO.RISING, callback=button_press1, bouncetime = 1000)
