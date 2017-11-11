@@ -256,22 +256,6 @@ def action_device():
 
 ###################################### Interrupt ######################################################
 
- Power button treatment servo
-def button_press1(channel):
-    with app.app_context():
-
-        db = get_db()
-
-        if (servo.servo_status == "CLOSE"):
-            servo.open()
-        else:
-            servo.close()
-
-        # Updates the database with the new status and last action time
-        time_now = time.strftime("%c")
-        cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE type=1", 
-            (servo.servo_status, time_now))
-        db.commit()
 
 # When the power button is pressed the code calls this routine
 def button_press(channel):
@@ -312,4 +296,4 @@ def zero_cross_detected(channel):
 GPIO.add_event_detect(19, GPIO.FALLING, callback=button_press, bouncetime = 1000)
 # Interrupt when alternating current goes through zero volts
 GPIO.add_event_detect(16, GPIO.RISING, callback=zero_cross_detected, bouncetime = 8)
-GPIO.add_event_detect(29, GPIO.RISING, callback=button_press1, bouncetime = 1000)
+
