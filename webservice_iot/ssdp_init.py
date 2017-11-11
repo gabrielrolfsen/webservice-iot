@@ -1,16 +1,15 @@
 #! /usr/bin/env python
 
 from lib.ssdp import SSDPServer
-from lib.upnp_http_server import UPNPHTTPServer
 import uuid
 import netifaces as ni
 from time import sleep
 import logging
 
 logger = logging.getLogger()
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.INFO)
 
-def get_network_interface_ip_address(interface='en0'):
+def get_network_interface_ip_address(interface='wlan0'):
     """
     Get the first IP address of a network interface.
     :param interface: The name of the interface.
@@ -30,7 +29,7 @@ def get_network_interface_ip_address(interface='en0'):
 
 device_uuid = uuid.uuid4()
 
-NETWORK_INTERFACE = 'en0'
+NETWORK_INTERFACE = 'wlan0'
 local_ip_address = get_network_interface_ip_address(NETWORK_INTERFACE)
 
 ssdp = SSDPServer()

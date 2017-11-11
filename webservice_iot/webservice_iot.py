@@ -37,6 +37,7 @@ STATUS_OK = 200
 STATUS_CREATED = 201
 STATUS_FORBIDDEN = 401
 STATUS_NOT_FOUND = 404
+STATUS_INTERNAL_SERVER_ERROR = 500
 
 motor = Servo()
 bulb = Light_bulb()
@@ -99,7 +100,10 @@ def login():
 
     # Gets the JSON content received
     content = request.get_json()
-
+    print(content)
+    if content is None:
+        data = {'error': 'JSON is empty'}
+        return jsonify(data), STATUS_INTERNAL_SERVER_ERROR
     # Search the database for a row with the username and password received in JSON file
     cursor = db.execute('SELECT * FROM users WHERE username=? AND password=?', (content['username'], content['password']))
     row = cursor.fetchone()
@@ -131,7 +135,7 @@ def list_devices():
     # Search the database for all devices
     cursor = db.execute('SELECT * FROM devices')
     row = cursor.fetchone()
-
+    
     # if: One device available at least / else: no devices available
     if row is not None:
         dic = {'query': []}
@@ -140,7 +144,7 @@ def list_devices():
             data = {'id': row[0], 'name': row[1], 'type': row[2], 'status': row[3], 'last_active_time': row[4]}
             dic['query'].append(data)
             row = cursor.fetchone()
-
+        print(dic['query'])
         return jsonify(dic['query']), STATUS_OK
 
     else:
@@ -179,6 +183,7 @@ def light_bulb_details(id):
     if row is not None:
         data = {'id': row[0], "name": row[1], 'type': row[2], 'status': row[3], 'dimmer_value': bulb.dimmer_value,
             'last_activate_time': row[4]}
+        print(data)
         return jsonify(data), STATUS_OK
 
     else:
@@ -192,6 +197,7 @@ def action_device():
 
     # Gets the JSON content received
     content = request.get_json()
+    print(content)
 
     # Search the database for a row with id received in parameter of the endpoint
     cursor = db.execute('SELECT * FROM devices WHERE id=?', str(content['id']))
@@ -204,10 +210,10 @@ def action_device():
             print("Acao no motor")
             #To Do @brunohideki
             if (content['action'] == "CHANGE_STATUS"):
-                if(content['value'] == "OPEN"):
+                if(content['status'] == "OPEN"):
                     servo.open()
 
-                elif(content['value'] == "CLOSE"):
+                elif(content['status'] == "CLOSE"):
                     servo.close()
                 else:
                     data = {'error': 'Value field is wrong'}
@@ -216,10 +222,10 @@ def action_device():
         # Lighting Behaviors
         elif (content['type'] == 2):
             if (content['action'] == "CHANGE_STATUS"):
-                if(content['value'] == "ON"):
+                if(content['status'] == "ON"):
                     bulb.light_on()
 
-                elif(content['value'] == "OFF"):
+                elif(content['status'] == "OFF"):
                     bulb.light_off()
 
                 else:
@@ -227,7 +233,7 @@ def action_device():
                     return jsonify(data), STATUS_FORBIDDEN
 
             elif (content['action'] == "DIMMER"):
-                value = int(content['value'])
+                value = int(content['dimmer_value'])
                 bulb.set_dimmer_value(value)
 
             else:
@@ -240,7 +246,8 @@ def action_device():
                 (bulb.light_status, time_now, content['id']))
             db.commit()
 
-            data = {"id": content['id'], "type": content['type'], "status": bulb.light_status, "dimmer": str(bulb.dimmer_value)}
+            data = {"id": content['id'], "type": content['type'], "status": bulb.light_status, "dimmer": bulb.dimmer_value}
+            print(data)
             return jsonify(data), STATUS_OK
 
         else:
