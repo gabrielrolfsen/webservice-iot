@@ -192,7 +192,7 @@ def action_device():
     db = get_db()
 
     # Gets the JSON content received 
-    content = request.get_json()
+    co
 
     # Search the database for a row with id received in parameter of the endpoint
     cursor = db.execute('SELECT * FROM devices WHERE id=?', str(content['id']))
@@ -201,7 +201,7 @@ def action_device():
     if row is not None:
 
         # fechadura
-        if (content['type'] == 1):
+        if (content['type'] == "1"):
             print("Acao no motor") 
             #To Do @brunohideki
             if (content['action'] == "CHANGE_STATUS"):
@@ -276,7 +276,7 @@ def action_device():
 # When the power button is pressed the code calls this routine
 def button_press(channel):
     with app.app_context():
- 
+
         db = get_db()
 
         if (bulb.light_status == "OFF"):
