@@ -233,9 +233,13 @@ def action_device():
             if (content['action'] == "CHANGE_STATUS"):
                 if(content['status'] == "ON"):
                     bulb.light_on()
+                    value = int(content['dimmer_value'])
+                    bulb.set_dimmer_value(value)
 
                 elif(content['status'] == "OFF"):
                     bulb.light_off()
+                    value = int(content['dimmer_value'])
+                    bulb.set_dimmer_value(value)
 
                 else:
                     data = {'error': 'Value field is wrong'}
