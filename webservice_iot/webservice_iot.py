@@ -164,7 +164,7 @@ def door_locl_details(id):
     # if: Device is valid, return your data / else: unespected error
     if row is not None:
         data = {'id': str(row[0]), "name": row[1], 'type': str(row[2]), 'status': row[3],
-            'last_active_time': row[4]}
+            'last_active_time': row[4], 'link': motor.link_status}
         return jsonify(data), STATUS_OK
 
     else:
