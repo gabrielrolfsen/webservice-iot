@@ -137,7 +137,7 @@ def list_devices():
     # Search the database for all devices
     cursor = db.execute('SELECT * FROM devices')
     row = cursor.fetchone()
-    
+
     # if: One device available at least / else: no devices available
     if row is not None:
         dic = {'query': []}
@@ -211,7 +211,7 @@ def action_device():
             print("Acao no motor")
             #To Do @brunohideki
             if (content['action'] == "CHANGE_STATUS"):
-                
+
                 if(content['status'] == "OPEN"):
                     motor.open()
 
@@ -305,9 +305,13 @@ def button_press_light(channel):
 
         if (bulb.light_status == "OFF"):
             bulb.light_on()
+            bulb.set_dimmer_value(10)
+            print(bulb.dimmer_value)
 
         else:
             bulb.light_off()
+            bulb.set_dimmer_value(0)
+            print(bulb.dimmer_value)
 
         # Updates the database with the new status and last action time
         time_now = time.strftime("%c")
@@ -320,6 +324,7 @@ def zero_cross_detected(channel):
 
         if(bulb.dimmer_value == 0):
             if (bulb.light_status == "ON"):
+
                 GPIO.output(15, GPIO.LOW)
 
         elif(bulb.dimmer_value == 10):

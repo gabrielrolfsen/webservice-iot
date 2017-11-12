@@ -10,13 +10,13 @@ class Light_bulb:
 		GPIO.setup(15, GPIO.OUT)
 
 	def light_on(self):
-		self.dimmer_value = 10
+#		self.dimmer_value = 10
 		self.light_status = "ON"
 		print("Ligou")
 		GPIO.output(15, GPIO.HIGH)
 
 	def light_off(self):
-		self.dimmer_value = 0
+#		self.dimmer_value = 0
 		self.light_status = "OFF"
 		print("Desligou")
 		GPIO.output(15, GPIO.LOW)
