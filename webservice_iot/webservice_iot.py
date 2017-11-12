@@ -164,7 +164,7 @@ def door_locl_details(id):
     # if: Device is valid, return your data / else: unespected error
     if row is not None:
         data = {'id': str(row[0]), "name": row[1], 'type': str(row[2]), 'status': row[3],
-            'last_activate_time': row[4]}
+            'last_active_time': row[4]}
         return jsonify(data), STATUS_OK
 
     else:
@@ -183,7 +183,7 @@ def light_bulb_details(id):
     # if: Device is valid, return your data / else: unespected error
     if row is not None:
         data = {'id': row[0], "name": row[1], 'type': row[2], 'status': row[3], 'dimmer_value': bulb.dimmer_value,
-            'last_activate_time': row[4]}
+            'last_active_time': row[4]}
         print(data)
         return jsonify(data), STATUS_OK
 
