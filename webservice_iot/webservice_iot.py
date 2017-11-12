@@ -155,7 +155,8 @@ def list_devices():
 
 #To Do @brunohideki
 @app.route('/door_lock/<id>', methods=['GET'])
-def door_locl_details(id):
+def door_lock_details(id):
+    db = get_db()
 
     # Search the database for a row with id received in parameter of the endpoint and parameter = 2 (light_bulb)
     cursor = db.execute('SELECT * FROM devices WHERE id=? AND type=1', id)
@@ -163,7 +164,7 @@ def door_locl_details(id):
 
     # if: Device is valid, return your data / else: unespected error
     if row is not None:
-        data = {'id': str(row[0]), "name": row[1], 'type': str(row[2]), 'status': row[3],
+        data = {'id': row[0], "name": row[1], 'type': row[2], 'status': row[3],
             'last_active_time': row[4], 'link': motor.link_status}
         return jsonify(data), STATUS_OK
 
@@ -236,9 +237,15 @@ def action_device():
                     if(content['status'] == "OPEN"):
                         motor.open()
                         bulb.light_on()
+                        bulb.set_dimmer_value(10)
+                        print(bulb.dimmer_value)
+
                     elif(content['status'] == "CLOSE"):
                         motor.close()
                         bulb.light_off()
+                        bulb.set_dimmer_value(0)
+                        print(bulb.dimmer_value)
+
                     else:
                         data = {'error': 'Value field is wrong'}
                         return jsonify(data), STATUS_FORBIDDEN 
