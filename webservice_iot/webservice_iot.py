@@ -262,6 +262,8 @@ def action_device():
                     bulb.light_on()
                     value = int(content['dimmer_value'])
                     bulb.set_dimmer_value(value)
+                    if (bulb.dimmer_value == 0):
+                        bulb.light_status = "ON"
 
                 elif(content['status'] == "OFF"):
                     bulb.light_off()
