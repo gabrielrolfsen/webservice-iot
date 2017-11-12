@@ -218,6 +218,12 @@ def action_device():
                 elif(content['status'] == "CLOSE"):
                     motor.close()
 
+                if(content['value'] == "OPEN"):
+                    motor.open()
+
+                elif(content['value'] == "CLOSE"):
+                    motor.close()
+
                 else:
                     data = {'error': 'Value field is wrong'}
                     return jsonify(data), STATUS_FORBIDDEN
