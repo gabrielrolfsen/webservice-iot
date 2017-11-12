@@ -137,7 +137,7 @@ def list_devices():
     # Search the database for all devices
     cursor = db.execute('SELECT * FROM devices')
     row = cursor.fetchone()
-    
+
     # if: One device available at least / else: no devices available
     if row is not None:
         dic = {'query': []}
@@ -211,6 +211,7 @@ def action_device():
             print("Acao no motor")
             #To Do @brunohideki
             if (content['action'] == "CHANGE_STATUS"):
+
                 if(content['link'] == "NLINK"):
                     motor.link_status = "NLINK"
                     if(content['status'] == "OPEN"):
@@ -253,16 +254,19 @@ def action_device():
                     data = {"id": content['id'], "type": content['type'], "status": motor.servo_status, "link": motor.link_status}
                     print(data)
                     return jsonify(data), STATUS_OK
- 
 
         # Lighting Behaviors
         elif (content['type'] == 2):
             if (content['action'] == "CHANGE_STATUS"):
                 if(content['status'] == "ON"):
                     bulb.light_on()
+                    value = int(content['dimmer_value'])
+                    bulb.set_dimmer_value(value)
 
                 elif(content['status'] == "OFF"):
                     bulb.light_off()
+                    value = int(content['dimmer_value'])
+                    bulb.set_dimmer_value(value)
 
                 else:
                     data = {'error': 'Value field is wrong'}
@@ -328,9 +332,13 @@ def button_press_light(channel):
 
         if (bulb.light_status == "OFF"):
             bulb.light_on()
+            bulb.set_dimmer_value(10)
+            print(bulb.dimmer_value)
 
         else:
             bulb.light_off()
+            bulb.set_dimmer_value(0)
+            print(bulb.dimmer_value)
 
         # Updates the database with the new status and last action time
         time_now = time.strftime("%c")
@@ -343,6 +351,7 @@ def zero_cross_detected(channel):
 
         if(bulb.dimmer_value == 0):
             if (bulb.light_status == "ON"):
+
                 GPIO.output(15, GPIO.LOW)
 
         elif(bulb.dimmer_value == 10):
