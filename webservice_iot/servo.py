@@ -11,7 +11,7 @@ class Servo:
         GPIO.setup(pin, GPIO.OUT)
         self.pwm = GPIO.PWM(pin, freq)
         self.pwm.start(0)
-        servo_status = "CLOSE"
+        self.servo_status = "CLOSE"
         return
 
     def open(self):
