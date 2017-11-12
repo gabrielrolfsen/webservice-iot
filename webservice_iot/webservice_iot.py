@@ -116,10 +116,9 @@ def login():
         return jsonify(data), STATUS_FORBIDDEN
     else:
         session['logged_in'] = True
-        data = {'name': row[1], 'username': row[2], 'password': row[3]}
+        data = {'name': row[1], 'username': row[2], 'password': row[3], 'creation_date': row[5]}
         print(data)
         return jsonify(data), STATUS_OK
-
 
 # Logout attempt and callback
 @app.route('/logout', methods=['POST'])
