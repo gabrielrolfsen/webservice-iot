@@ -9,7 +9,7 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-def get_network_interface_ip_address(interface='wlan0'):
+def get_network_interface_ip_address(interface='wlan0')
     """
     Get the first IP address of a network interface.
     :param interface: The name of the interface.
