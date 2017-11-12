@@ -9,7 +9,7 @@
 import os
 import sqlite3
 import time
-import threading
+from threading import Thread
 import RPi.GPIO as GPIO
 from .servo import Servo
 from .light_bulb import Light_bulb
@@ -272,7 +272,13 @@ def action_device():
 ###################################### Interrupt ######################################################
 
 #Power button treatment servo
-def button_press1(channel):
+def button_press_motor(channel):
+    with app.app_context():
+        motor_thread = Thread(target = thread_button)
+        motor_thread.start()
+
+
+def thread_button():
     with app.app_context():
 
         db = get_db()
@@ -284,12 +290,11 @@ def button_press1(channel):
 
         # Updates the database with the new status and last action time
         time_now = time.strftime("%c")
-        cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE type=1",
-            (motor.servo_status, time_now))
+        cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE type=1", (motor.servo_status, time_now))
         db.commit()
 
 # When the power button is pressed the code calls this routine
-def button_press(channel):
+def button_press_light(channel):
     with app.app_context():
         print("teste")
         db = get_db()
@@ -324,7 +329,7 @@ def zero_cross_detected(channel):
             GPIO.output(15, GPIO.LOW)
 
 # Interrupt when the power button is pressed
-GPIO.add_event_detect(19, GPIO.FALLING, callback=button_press, bouncetime = 1000)
+GPIO.add_event_detect(19, GPIO.FALLING, callback=button_press_light, bouncetime = 1000)
 # Interrupt when alternating current goes through zero volts
 GPIO.add_event_detect(16, GPIO.RISING, callback=zero_cross_detected, bouncetime = 8)
-GPIO.add_event_detect(7, GPIO.FALLING, callback=button_press1, bouncetime = 1000)
+GPIO.add_event_detect(7, GPIO.FALLING, callback=button_press_motor, bouncetime = 1000)
