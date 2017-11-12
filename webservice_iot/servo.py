@@ -12,6 +12,7 @@ class Servo:
         self.pwm = GPIO.PWM(pin, freq)
         self.pwm.start(0)
         self.servo_status = "CLOSE"
+        self.link_status = "NLINK"
         return
 
     def open(self):
@@ -33,6 +34,15 @@ class Servo:
             return "OPEN"
         else:
             return "CLOSE"
+
+    def link(self):
+        self.link_status = "LINK"
+
+    def unlink(self):
+        self.link_status = "NLINK"
+
+    def estado_link(self):
+        self.link_status = "NLINK"
 
     def toggle(self):
         if self.state is Servo.OPEN:

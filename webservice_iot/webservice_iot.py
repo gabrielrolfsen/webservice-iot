@@ -211,22 +211,49 @@ def action_device():
             print("Acao no motor")
             #To Do @brunohideki
             if (content['action'] == "CHANGE_STATUS"):
-                
-                if(content['status'] == "OPEN"):
-                    motor.open()
+                if(content['link'] == "NLINK"):
+                    motor.link_status = "NLINK"
+                    if(content['status'] == "OPEN"):
+                        motor.open()
+                    elif(content['status'] == "CLOSE"):
+                        motor.close()
+                    else:
+                        data = {'error': 'Value field is wrong'}
+                        return jsonify(data), STATUS_FORBIDDEN 
 
-                elif(content['status'] == "CLOSE"):
-                    motor.close()
+                    # Updates the database with the new status and last action time
+                    time_now = time.strftime("%c")
+                    cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE id=?",
+                        (motor.servo_status, time_now, content['id']))
+                    db.commit()
+                    data = {"id": content['id'], "type": content['type'], "status": motor.servo_status, "link": motor.link_status}
+                    print(data)
+                    return jsonify(data), STATUS_OK
 
-                if(content['value'] == "OPEN"):
-                    motor.open()
+                elif (content['link'] == "LINK"):
+                    motor.link_status = "LINK"
+                    if(content['status'] == "OPEN"):
+                        motor.open()
+                        bulb.light_on()
+                    elif(content['status'] == "CLOSE"):
+                        motor.close()
+                        bulb.light_off()
+                    else:
+                        data = {'error': 'Value field is wrong'}
+                        return jsonify(data), STATUS_FORBIDDEN 
 
-                elif(content['value'] == "CLOSE"):
-                    motor.close()
-
-                else:
-                    data = {'error': 'Value field is wrong'}
-                    return jsonify(data), STATUS_FORBIDDEN
+                    # Updates the database with the new status and last action time
+                    time_now = time.strftime("%c")
+                    cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE id=?",
+                        (motor.servo_status, time_now, content['id']))
+                    db.commit()
+                    cursor = db.execute("UPDATE devices SET status=?, last_active_time=? WHERE id=1",
+                        (bulb.light_status, time_now))
+                    db.commit()
+                    data = {"id": content['id'], "type": content['type'], "status": motor.servo_status, "link": motor.link_status}
+                    print(data)
+                    return jsonify(data), STATUS_OK
+ 
 
         # Lighting Behaviors
         elif (content['type'] == 2):
