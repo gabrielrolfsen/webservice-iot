@@ -166,6 +166,7 @@ def door_lock_details(id):
     if row is not None:
         data = {'id': row[0], "name": row[1], 'type': row[2], 'status': row[3],
             'last_active_time': row[4], 'link': motor.link_status}
+        print(data)
         return jsonify(data), STATUS_OK
 
     else:
