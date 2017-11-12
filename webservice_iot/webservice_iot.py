@@ -77,6 +77,7 @@ def sign_up():
 
     # Gets the JSON content received
     content = request.get_json()
+    print(content)
 
     # if: pin code is valid, register! / else: invalid pin code
     if (content['pin_code'] == "123"):
@@ -116,6 +117,7 @@ def login():
     else:
         session['logged_in'] = True
         data = {'name': row[1], 'username': row[2], 'password': row[3]}
+        print(data)
         return jsonify(data), STATUS_OK
 
 
@@ -155,7 +157,6 @@ def list_devices():
 #To Do @brunohideki
 @app.route('/door_lock/<id>', methods=['GET'])
 def door_locl_details(id):
-    db = get_db()
 
     # Search the database for a row with id received in parameter of the endpoint and parameter = 2 (light_bulb)
     cursor = db.execute('SELECT * FROM devices WHERE id=? AND type=1', id)
